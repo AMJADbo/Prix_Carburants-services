@@ -1,0 +1,322 @@
+/* Reset initial */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  background: #f5f5f5;
+  color: #222;
+}
+
+/* Palette de couleurs de l'application */
+:root {
+    --primary-color: #EDF3FF;
+    --secondary-color: #F3F3F5;
+    --accent-color: #1d6bff;
+}
+
+body {
+  background-color: var(--primary-color);
+}
+
+/* Header */
+header {
+  background: var(--primary-color);
+  color: black;
+  padding: 12px 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+
+/* Sidebar gauche + contenu droite */
+.layout {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  height: calc(100vh - 60px);
+  gap: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  grid-column: span 2;
+  background: var(--primary-color);
+  padding: 0 15px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: #555;
+}
+#card-filters {
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+}
+
+.filter-item {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-item label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #444;
+}
+
+.filter-item select,
+.filter-item input[type="number"] {
+  padding: 6px 8px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--secondary-color);
+}
+
+.filter-item select:focus,
+.filter-item input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Style pour input + unité côte à côte */
+.input-unit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-unit {
+  width: 33%;
+  min-width: 60px;
+  max-width: 90px;
+}
+.unit-label {
+  font-size: 13px;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* Message d'erreur (caché par défaut) */
+.error {
+  color: red;
+  font-size: 11px;
+  display: none;
+}
+
+.error.visible {
+  display: block;
+}
+
+/* Contenu principal ("main") */
+.content {
+  grid-column: span 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0 25px;
+}
+
+/* Onglets */
+.tabs {
+  display: flex;
+  justify-content: center;
+  background: var(--secondary-color);
+  border-radius: 25px;
+  margin: 0 0 18px 0;
+  overflow: hidden;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 15px 0;
+  background: var(--secondary-color);
+  border: none;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #666;
+}
+
+.tab.active {
+  background: #fff;
+  z-index: 1;
+  border-radius: 25px;
+}
+
+/* Bandeau de résultats */
+.results-banner {
+  background: var(--accent-color);
+  color: white;
+  padding: 25px 15px;
+  font-size: 18px;
+  border-radius: 15px 15px 0 0;
+}
+
+.results-sub {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-left: auto;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* Vue liste */
+#view-liste {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.placeholder {
+  color: #999;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Carte station */
+.station-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank {
+  width: 24px;
+  height: 24px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.station-name {
+  font-weight: bold;
+  font-size: 14px;
+  flex: 1;
+}
+
+.badge-best {
+  background: #00c896;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.card-address {
+  font-size: 12px;
+  color: #777;
+}
+
+.card-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.card-distance {
+  font-size: 12px;
+  color: #777;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #777;
+}
+
+.card-total {
+  font-weight: bold;
+  color: #333;
+}
+
+.card-services {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.service-tag {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Vue carte */
+#view-carte {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#map {
+  flex: 1;
+  min-height: 300px;
+}
+
+/* Utilitaires */
+.hidden {
+  display: none !important;
+}
