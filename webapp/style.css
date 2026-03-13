@@ -259,10 +259,10 @@ header p {
 .badge-best {
   background: var(--green);
   color: white;
-  font-size: 10px;
-  font-weight: bold;
-  padding: 2px 7px;
-  border-radius: 12px;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  margin-left: 5px;
 }
 
 .card-address {
@@ -273,7 +273,7 @@ header p {
 .card-price-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
 }
 
 .card-price {
@@ -295,10 +295,16 @@ header p {
   font-size: 12px;
   color: #777;
 }
+.card-update {
+  color: #777;
+}
 
 .card-total {
   font-weight: bold;
   color: #333;
+  background: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 5px;
 }
 
 .card-services {
