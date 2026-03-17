@@ -141,11 +141,6 @@ function renderStationsOnMap(stations) {
     window._markerClusterGroup.addLayer(marker);
   });
 
-  // Centre la carte sur la première station si elle existe
-  if (stations.length > 0) {
-    map.setView([stations[0].latitude, stations[0].longitude], 12);
-  }
-
   // Attend 100ms pour laisser le CSS finir, puis recalcule la taille
   setTimeout(() => {
     map.invalidateSize();
