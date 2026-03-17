@@ -57,7 +57,8 @@ header p {
 .sidebar {
   grid-column: span 2;
   background: var(--primary-color);
-  padding: 0 15px;
+  padding: 0 10px;
+  margin-left: 10px;
   overflow-y: auto;
 }
 
@@ -145,7 +146,7 @@ header p {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin: 0 25px;
+  margin: 0 15px;
 }
 
 /* Onglets */
@@ -203,8 +204,8 @@ header p {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: calc(100vh - 220px);
-  /* Ajuste selon la hauteur de l'en-tête et des tabs */
+  max-height: calc(73vh); /* Ajuste selon la hauteur de l'en-tête et des tabs */
+  border-radius: 0 0 15px 15px;
 }
 
 .placeholder {
@@ -339,10 +340,58 @@ header p {
 
 #map {
   flex: 1;
-  min-height: 300px;
-  height: 400px;
   width: 100%;
-  border-radius: 10px;
+  max-height: calc(73vh);
+  border-radius: 0 0 15px 15px;
+}
+
+.map-legend {
+  /* Positionnement */
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: auto;
+  z-index: 1000;
+
+  /* Apparence */
+  width: fit-content;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px #0002;
+
+  /* Texte et alignement interne */
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* Éléments de légende */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* On s'assure que les icônes occupent le même espace pour aligner le texte */
+.legend-item svg {
+  width: 20px;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Légende des éléments */
+#legend-user-label {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+#legend-station-label {
+  color: var(--green);
+  font-weight: bold;
 }
 
 /* Utilitaires */
@@ -352,17 +401,17 @@ header p {
 
 .station-label div {
   background: #fff;
-  border: 1px solid #888;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 13px;
+  border: 2px solid var(--green);
+  padding: 5px;
+  border-radius: 10px;
+  font-size: 12px;
   box-shadow: 0 2px 6px #0001;
   min-width: 120px;
   text-align: center;
 }
 
 .station-label span {
-  color: #00c950;
+  color: var(--green);
   font-weight: bold;
 }
 
