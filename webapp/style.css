@@ -187,6 +187,7 @@ header p {
   padding: 25px 15px;
   font-size: 18px;
   border-radius: 15px 15px 0 0;
+  transition: background-color 0.3s ease;
 }
 
 .results-sub {
