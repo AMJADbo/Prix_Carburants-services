@@ -165,6 +165,14 @@ function observeMapVisibility() {
 // Lancer au chargement et à chaque changement de filtre
 // (DOMContentLoaded = page chargée)
 document.addEventListener('DOMContentLoaded', () => {
+  // Récupère l'onglet actif précédemment (stocké dans localStorage)
+  const lastTab = localStorage.getItem('activeTab');
+  if (lastTab === 'carte') {
+    document.getElementById('tab-carte').classList.add('active');
+    document.getElementById('tab-liste').classList.remove('active');
+    document.getElementById('view-carte').classList.remove('hidden');
+    document.getElementById('view-liste').classList.add('hidden');
+  }
   renderStations(); // Affiche les stations au chargement
   // Ajoute un listener sur tous les inputs/selects pour relancer le rendu à chaque modification
   document.querySelectorAll('#card-filters input, #card-filters select')
@@ -172,6 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Lance l'observation de la visibilité de la carte
   observeMapVisibility();
 });
+
+// Ajoute la sauvegarde de l'onglet actif à chaque clic sur un onglet
+const tabListe = document.getElementById('tab-liste');
+const tabCarte = document.getElementById('tab-carte');
+if (tabListe && tabCarte) {
+  tabListe.addEventListener('click', () => {
+    localStorage.setItem('activeTab', 'liste');
+  });
+  tabCarte.addEventListener('click', () => {
+    localStorage.setItem('activeTab', 'carte');
+  });
+}
 
 // Fonction utilitaire pour afficher le texte "mise à jour il y a x heures"
 function getUpdateText(dateStr) {
