@@ -8,6 +8,7 @@ public class Station {
     private String adresse;
     private String ville;
     private String cp;
+    private double distance;
     private boolean automate;
     private boolean lavage;
     private boolean gonflage;
@@ -96,6 +97,13 @@ public class Station {
 
     public boolean isGonflage() {
         return gonflage;
+    }
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
     }
 
     public void setGonflage(boolean gonflage) {

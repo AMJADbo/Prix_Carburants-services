@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Price;
 import model.Station;
+import dao.HoraireDAO;
+import model.horaire;
 
 @WebServlet("/api/stations/details")
 public class StationDetailsApiServlet extends HttpServlet {
@@ -42,10 +44,13 @@ public class StationDetailsApiServlet extends HttpServlet {
 
         StationDAO stationDAO = new StationDAO();
         PriceDAO priceDAO = new PriceDAO();
-
+        HoraireDAO horaireDAO = new HoraireDAO();
+        
         Station station = stationDAO.findById(idStation);
         List<Price> prices = priceDAO.findByStationId(idStation);
-
+        
+        
+        List<horaire> horaires = horaireDAO.findByStationId(idStation);
         if (station == null) {
             response.getWriter().write("{\"error\":\"station introuvable\"}");
             return;
@@ -87,14 +92,31 @@ public class StationDetailsApiServlet extends HttpServlet {
         json.append("]");
 
         json.append("}");
+        json.append(",\"horaires\":[");
+        for (int i = 0; i < horaires.size(); i++) {
+            horaire h = horaires.get(i);
 
+            json.append("{")
+                .append("\"idHoraire\":").append(h.getIdHoraire()).append(",")
+                .append("\"jour\":\"").append(h.getJour()).append("\",")
+                .append("\"ouverture\":\"").append(h.getOuverture()).append("\",")
+                .append("\"fermeture\":\"").append(h.getFermeture()).append("\"")
+                .append("}");
+
+            if (i < horaires.size() - 1) {
+                json.append(",");
+            }
+        }
+
+        json.append("]");
         response.getWriter().write(json.toString());
     }
-
+         
     private String escapeJson(String text) {
         if (text == null) {
             return "";
         }
         return text.replace("\\", "\\\\").replace("\"", "\\\"");
     }
+    
 }
