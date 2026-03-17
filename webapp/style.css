@@ -15,10 +15,10 @@ body {
 
 /* Palette de couleurs de l'application */
 :root {
-    --primary-color: #EDF3FF;
-    --secondary-color: #F3F3F5;
-    --accent-color: #1d6bff;
-    --green: #00c950;
+  --primary-color: #EDF3FF;
+  --secondary-color: #F3F3F5;
+  --accent-color: #1d6bff;
+  --green: #00c950;
 }
 
 body {
@@ -66,6 +66,7 @@ header p {
   margin-bottom: 16px;
   color: #555;
 }
+
 #card-filters {
   background-color: white;
   padding: 25px;
@@ -114,11 +115,13 @@ header p {
   align-items: center;
   gap: 8px;
 }
+
 .input-unit {
   width: 33%;
   min-width: 60px;
   max-width: 90px;
 }
+
 .unit-label {
   font-size: 13px;
   color: #888;
@@ -190,7 +193,6 @@ header p {
   opacity: 0.75;
   margin-left: auto;
   margin-top: 5px;
-  font-style: italic;
 }
 
 /* Vue liste */
@@ -201,7 +203,8 @@ header p {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: calc(100vh - 220px); /* Ajuste selon la hauteur de l'en-tête et des tabs */
+  max-height: calc(100vh - 220px);
+  /* Ajuste selon la hauteur de l'en-tête et des tabs */
 }
 
 .placeholder {
@@ -226,7 +229,7 @@ header p {
 }
 
 /* Sélectionner tous les enfants directs de .station-card sauf le premier */
-.station-card > * + * {
+.station-card>*+* {
   margin-top: 10px;
 }
 
@@ -295,6 +298,7 @@ header p {
   font-size: 12px;
   color: #777;
 }
+
 .card-update {
   color: #777;
 }

@@ -1,5 +1,5 @@
 // Attend que le DOM soit chargé avant d'exécuter le script
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   // Récupère le bouton de l'onglet "Liste"
   const tabListe = document.getElementById('tab-liste');
   // Récupère le bouton de l'onglet "Carte"
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fonction pour sélectionner un onglet et afficher la vue correspondante
   function selectTab(tab) {
-    if(tab === 'liste') {
+    if (tab === 'liste') {
       // Active l'onglet "Liste" et désactive "Carte"
       tabListe.classList.add('active');
       tabCarte.classList.remove('active');
@@ -29,11 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Ajoute un écouteur de clic sur l'onglet "Liste"
-  tabListe.addEventListener('click', function() {
+  tabListe.addEventListener('click', function () {
     selectTab('liste'); // Sélectionne la vue liste
   });
   // Ajoute un écouteur de clic sur l'onglet "Carte"
-  tabCarte.addEventListener('click', function() {
+  tabCarte.addEventListener('click', function () {
     selectTab('carte'); // Sélectionne la vue carte
   });
 
