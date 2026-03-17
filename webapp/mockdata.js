@@ -61,65 +61,7 @@ const stations = [
     automate: true,
     lavage: true,
     gonflage: true,
-  },
-
-  {
-    id_station: 1001,
-    latitude: 4887220,   // → 48.87220° N  (Paris 18e)
-    longitude: 236580,    // →  2.36580° E
-    adresse: "12 Rue Marx Dormoy",
-    ville: "Paris",
-    cp: "75018",
-    automate: true,
-    lavage: false,
-    gonflage: true,
-  },
-  {
-    id_station: 1002,
-    latitude: 4884500,   // → 48.84500° N  (Paris 13e)
-    longitude: 233100,    // →  2.33100° E
-    adresse: "54 Boulevard de l'Hôpital",
-    ville: "Paris",
-    cp: "75013",
-    automate: true,
-    lavage: true,
-    gonflage: true,
-  },
-  {
-    id_station: 1003,
-    latitude: 4890100,   // → 48.90100° N  (Saint-Denis)
-    longitude: 234800,    // →  2.34800° E
-    adresse: "3 Avenue du Président Wilson",
-    ville: "Saint-Denis",
-    cp: "93200",
-    automate: false,
-    lavage: true,
-    gonflage: false,
-  },
-  {
-    id_station: 1004,
-    latitude: 4882300,   // → 48.82300° N  (Montrouge)
-    longitude: 231900,    // →  2.31900° E
-    adresse: "77 Avenue de la République",
-    ville: "Montrouge",
-    cp: "92120",
-    automate: true,
-    lavage: false,
-    gonflage: true,
-  },
-  {
-    id_station: 1005,
-    latitude: 4886700,   // → 48.86700° N  (Paris 11e)
-    longitude: 238400,    // →  2.38400° E
-    adresse: "101 Boulevard Voltaire",
-    ville: "Paris",
-    cp: "75011",
-    automate: true,
-    lavage: true,
-    gonflage: true,
-  },
-
-
+  }
 
 ];
 

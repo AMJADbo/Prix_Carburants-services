@@ -64,7 +64,7 @@ function renderStations() {
         <div class="card-footer">
           <span class="card-total">Coût total estimé : ${s.cout_total.toFixed(2)} €</span>
           <div class="card-services">
-            ${s.lavage ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><path d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65"/></svg> Lavage</span>' : ''}
+            ${s.lavage ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><path d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65"/></svg> Lavage</span>' : ''}
             ${s.gonflage ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wind" viewBox="0 0 16 16"><path d="M12.5 2A2.5 2.5 0 0 0 10 4.5a.5.5 0 0 1-1 0A3.5 3.5 0 1 1 12.5 8H.5a.5.5 0 0 1 0-1h12a2.5 2.5 0 0 0 0-5m-7 1a1 1 0 0 0-1 1 .5.5 0 0 1-1 0 2 2 0 1 1 2 2h-5a.5.5 0 0 1 0-1h5a1 1 0 0 0 0-2M0 9.5A.5.5 0 0 1 .5 9h10.042a3 3 0 1 1-3 3 .5.5 0 0 1 1 0 2 2 0 1 0 2-2H.5a.5.5 0 0 1-.5-.5"/></svg> Gonflage</span>' : ''}
 
           </div>
@@ -93,12 +93,6 @@ function renderStationsOnMap(stations) {
   }
   const map = window._leafletMap;
 
-  // Supprime les anciens marqueurs si présents
-  if (window._leafletMarkers) {
-    window._leafletMarkers.forEach(m => map.removeLayer(m));
-  }
-  window._leafletMarkers = [];
-
   // Ajoute le pin bleu pour la position géolocalisée de l'utilisateur
   if (window._leafletUserMarker) {
     map.removeLayer(window._leafletUserMarker);
@@ -115,25 +109,36 @@ function renderStationsOnMap(stations) {
     })
   }).addTo(map);
 
-  // Ajoute un triangle vert inversé pour chaque station + rectangle d'information
-  stations.forEach(station => {
-    // Triangle vert inversé
-    const triangleIcon = L.divIcon({
-      className: 'station-triangle',
-      html: `<svg width='24' height='24' viewBox='0 0 24 24' style='display:block'><polygon points='12,20 4,4 20,4' fill='#00c950'/></svg>`,
-      iconSize: [24, 24],
-      iconAnchor: [12, 20], // Pointe du triangle
-    });
-    L.marker([station.latitude, station.longitude], { icon: triangleIcon }).addTo(map);
+  // Initialiser le groupe de clusters Leaflet
+  if (!window._markerClusterGroup) {
+    window._markerClusterGroup = L.markerClusterGroup();
+    map.addLayer(window._markerClusterGroup);
+  } else {
+    // Vide le cluster existant à chaque nouvelle recherche
+    window._markerClusterGroup.clearLayers();
+  }
 
-    // Rectangle d'information au-dessus
-    const label = L.divIcon({
-      className: 'station-label',
-      html: `<div>${station.adresse}<br><span>${station.prix_carburant.toFixed(3)} €/L</span></div>`,
-      iconSize: [120, 40],
-      iconAnchor: [60, 90], // Position du label au-dessus du triangle
+  // Ajoute un marqueur combiné (triangle + info) pour chaque station au cluster
+  stations.forEach(station => {
+    const combinedIcon = L.divIcon({
+      className: 'station-combined-marker',
+      html: `
+        <div class="marker-label-container">
+          <div class="marker-label-box">
+            ${station.adresse}<br><span class="marker-price">${station.prix_carburant.toFixed(3)} €/L</span>
+          </div>
+        </div>
+        <svg class="marker-triangle-svg" width='24' height='24' viewBox='0 0 24 24'>
+          <polygon points='12,20 4,4 20,4' fill='#00c950'/>
+        </svg>
+      `,
+      iconSize: [0, 0] // La taille est gérée via le CSS
     });
-    L.marker([station.latitude, station.longitude], { icon: label }).addTo(map);
+
+    const marker = L.marker([station.latitude, station.longitude], { icon: combinedIcon });
+    
+    // Ajoute le marqueur au groupe de cluster
+    window._markerClusterGroup.addLayer(marker);
   });
 
   // Centre la carte sur la première station si elle existe
