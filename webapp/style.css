@@ -201,7 +201,6 @@ header p {
 #view-liste {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 50px;
   display: flex;
   flex-direction: column;
   min-height: 0;
