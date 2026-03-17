@@ -100,12 +100,41 @@ function renderStationsOnMap(stations) {
   }
   window._leafletMarkers = [];
 
-  // Ajoute un marqueur pour chaque station
+  // Ajoute le pin bleu pour la position géolocalisée de l'utilisateur
+  if (window._leafletUserMarker) {
+    map.removeLayer(window._leafletUserMarker);
+  }
+  // Pin bleu Leaflet par défaut pour l'utilisateur
+  window._leafletUserMarker = L.marker([48.866, 2.333], {
+    icon: L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      shadowSize: [41, 41]
+    })
+  }).addTo(map);
+
+  // Ajoute un triangle vert inversé pour chaque station + rectangle d'information
   stations.forEach(station => {
-    const marker = L.marker([station.latitude, station.longitude])
-      .addTo(map)
-      .bindPopup(`<b>${station.adresse}, ${station.ville}</b><br/>${station.prix_carburant.toFixed(3)} €/L`);
-    window._leafletMarkers.push(marker);
+    // Triangle vert inversé
+    const triangleIcon = L.divIcon({
+      className: 'station-triangle',
+      html: `<svg width='24' height='24' viewBox='0 0 24 24' style='display:block'><polygon points='12,20 4,4 20,4' fill='#00c950'/></svg>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 20], // Pointe du triangle
+    });
+    L.marker([station.latitude, station.longitude], { icon: triangleIcon }).addTo(map);
+
+    // Rectangle d'information au-dessus
+    const label = L.divIcon({
+      className: 'station-label',
+      html: `<div>${station.adresse}<br><span>${station.prix_carburant.toFixed(3)} €/L</span></div>`,
+      iconSize: [120, 40],
+      iconAnchor: [60, 90], // Position du label au-dessus du triangle
+    });
+    L.marker([station.latitude, station.longitude], { icon: label }).addTo(map);
   });
 
   // Centre la carte sur la première station si elle existe
