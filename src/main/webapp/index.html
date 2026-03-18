@@ -1,10 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stations Essence</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Lier Leaflet.js au projet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Lier Leaflet.markercluster au projet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 </head>
+
 <body>
- <h1>bienvenue</h1>
+
+  <header>
+    <h1>🚗 Stations Essence</h1>
+    <p>Trouvez les meilleures stations proches de vous, classées par rentabilité</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar filtres -->
+    <aside class="sidebar">
+      <div id="card-filters">
+        <h2><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-droplet"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M7.21.8C7.69.295 8 0 8 0q.164.544.371 1.038c.812 1.946 2.073 3.35 3.197 4.6C12.878 7.096 14 8.345 14 10a6 6 0 0 1-12 0C2 6.668 5.58 2.517 7.21.8m.413 1.021A31 31 0 0 0 5.794 3.99c-.726.95-1.436 2.008-1.96 3.07C3.304 8.133 3 9.138 3 10a5 5 0 0 0 10 0c0-1.201-.796-2.157-2.181-3.7l-.03-.032C9.75 5.11 8.5 3.72 7.623 1.82z" />
+            <path fill-rule="evenodd"
+              d="M4.553 7.776c.82-1.641 1.717-2.753 2.093-3.13l.708.708c-.29.29-1.128 1.311-1.907 2.87z" />
+          </svg>Filtres de recherche</h2>
+
+        <div class="filter-item">
+          <label for="filtre-carburant">Type de carburant</label>
+          <select id="filtre-carburant">
+            <option value="Gazole">Gazole</option>
+            <option value="SP95">SP95</option>
+            <option value="SP98">SP98</option>
+            <option value="E10">E10</option>
+            <option value="E85">E85</option>
+            <option value="GPLc">GPLc</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filtre-conso"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-speedometer2" viewBox="0 0 16 16">
+              <path
+                d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4M3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707M2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10m9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5m.754-4.246a.39.39 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.39.39 0 0 0-.029-.518z" />
+              <path fill-rule="evenodd"
+                d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A8 8 0 0 1 0 10m8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3" />
+            </svg>Consommation du véhicule</label>
+          <div class="input-unit-row">
+            <input type="number" id="filtre-conso" value="7" min="0.1" step="0.1" class="input-unit" />
+            <span class="unit-label">L/100km</span>
+          </div>
+          <span class="error" id="error-conso">Valeur saisie invalide</span>
+        </div>
+
+        <div class="filter-item">
+          <label for="filtre-rayon">Rayon</label>
+          <div class="input-unit-row">
+            <input type="number" id="filtre-rayon" value="25" min="1" class="input-unit" />
+            <span class="unit-label">km</span>
+          </div>
+          <span class="error" id="error-rayon">Valeur saisie invalide</span>
+        </div>
+
+        <div class="filter-item">
+          <label for="filtre-res-total">Réservoir total</label>
+          <div class="input-unit-row">
+            <input type="number" id="filtre-res-total" value="50" min="1" class="input-unit" />
+            <span class="unit-label">L</span>
+          </div>
+          <span class="error" id="error-res-total">Valeur saisie invalide</span>
+        </div>
+
+        <div class="filter-item">
+          <label for="filtre-res-courant">Réservoir courant</label>
+          <div class="input-unit-row">
+            <input type="number" id="filtre-res-courant" value="20" min="0" class="input-unit" />
+            <span class="unit-label">L</span>
+          </div>
+          <span class="error" id="error-res-courant">Valeur saisie invalide</span>
+        </div>
+
+        <div class="filter-item">
+          <label class="checkbox-label">
+            <input type="checkbox" id="filtre-lavage" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water"
+              viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;">
+              <path
+                d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65" />
+            </svg>
+            Station avec lavage
+          </label>
+        </div>
+
+        <div class="filter-item">
+          <label class="checkbox-label">
+            <input type="checkbox" id="filtre-gonflage" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wind"
+              viewBox="0 0 16 16">
+              <path
+                d="M12.5 2A2.5 2.5 0 0 0 10 4.5a.5.5 0 0 1-1 0A3.5 3.5 0 1 1 12.5 8H.5a.5.5 0 0 1 0-1h12a2.5 2.5 0 0 0 0-5m-7 1a1 1 0 0 0-1 1 .5.5 0 0 1-1 0 2 2 0 1 1 2 2h-5a.5.5 0 0 1 0-1h5a1 1 0 0 0 0-2M0 9.5A.5.5 0 0 1 .5 9h10.042a3 3 0 1 1-3 3 .5.5 0 0 1 1 0 2 2 0 1 0 2-2H.5a.5.5 0 0 1-.5-.5" />
+            </svg>
+            Station avec gonfleur
+          </label>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- Zone principale -->
+    <main class="content">
+
+      <!-- Onglets -->
+      <div class="tabs">
+        <button class="tab active" id="tab-liste">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+          </svg>
+          Liste</button>
+        <button class="tab" id="tab-carte">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-map"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.5.5 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103M10 1.91l-4-.8v12.98l4 .8zm1 12.98 4-.8V1.11l-4 .8zm-6-.8V1.11l-4 .8v12.98z" />
+          </svg>
+          Carte</button>
+      </div>
+
+      <!-- Bandeau résultats -->
+      <div class="results-banner">
+        <p id="results-count"></p>
+        <p class="results-sub" id="banner-sub"></p>
+      </div>
+
+      <!-- Vue liste -->
+      <div id="view-liste">
+        <p class="placeholder">Chargement en cours…</p>
+      </div>
+
+      <!-- Vue carte -->
+      <div id="view-carte" class="hidden">
+        <div id="map"></div>
+      </div>
+
+    </main>
+  </div>
+  <script src="app.js"></script>
+  <script src="tabs.js"></script>
 </body>
+
 </html>
