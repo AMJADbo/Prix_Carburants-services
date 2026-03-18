@@ -1,42 +1,99 @@
 import java.io.*;
+import java.net.*;
 import java.sql.*;
+import java.util.zip.*;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
 
+/**
+ * Télécharge le flux instantané des prix carburants depuis le site gouvernemental,
+ * dézippe le XML en mémoire et importe les données dans MySQL.
+ *
+ * Utilisé au démarrage du container Docker via start.sh.
+ */
 public class ImportOpenData {
 
-    static final String DB_URL  = "jdbc:mysql://localhost:3306/carburants";
-    static final String DB_USER = "root";
-    static final String DB_PASS = "root";
+    // Connexion BDD : variables d'environnement Docker ou valeurs locales par défaut
+    static final String DB_URL  = System.getenv("DB_URL")  != null
+            ? System.getenv("DB_URL")
+            : "jdbc:mysql://localhost:3306/carburants?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Paris";
+    static final String DB_USER = System.getenv("DB_USER") != null
+            ? System.getenv("DB_USER") : "root";
+    static final String DB_PASS = System.getenv("DB_PASS") != null
+            ? System.getenv("DB_PASS") : "root";
 
-    // Chemin exact d'après tes captures
-    static final String XML_PATH = "/Users/amjadbouicha/Desktop/opendata/PrixCarburants_instantane.xml";
+    // URL du flux instantané gouvernemental (mis à jour toutes les ~10 minutes)
+    static final String OPENDATA_URL = "https://donnees.roulez-eco.fr/opendata/instantane";
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println("Lecture du fichier XML...");
-        File xmlFile = new File(XML_PATH);
+        System.out.println("================================================");
+        System.out.println("  Import OpenData Prix Carburants");
+        System.out.println("================================================");
+        System.out.println("Téléchargement du fichier ZIP depuis :");
+        System.out.println("  " + OPENDATA_URL);
 
-        if (!xmlFile.exists()) {
-            System.err.println("ERREUR : fichier introuvable -> " + XML_PATH);
-            return;
+        // ── 1. Téléchargement et dézippage en mémoire ────────
+        InputStream xmlStream = null;
+        try {
+            URL url = new URL(OPENDATA_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(30_000);
+            conn.setReadTimeout(60_000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+            int status = conn.getResponseCode();
+            if (status != 200) {
+                System.err.println("ERREUR HTTP : " + status);
+                System.exit(1);
+            }
+
+            ZipInputStream zip = new ZipInputStream(conn.getInputStream());
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".xml")) {
+                    System.out.println("Fichier XML trouvé dans le ZIP : " + entry.getName());
+                    // Charge le XML en mémoire (évite de fermer le stream trop tôt)
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    byte[] chunk = new byte[8192];
+                    int len;
+                    while ((len = zip.read(chunk)) != -1) buffer.write(chunk, 0, len);
+                    xmlStream = new ByteArrayInputStream(buffer.toByteArray());
+                    break;
+                }
+            }
+            zip.close();
+        } catch (Exception e) {
+            System.err.println("ERREUR lors du téléchargement : " + e.getMessage());
+            System.exit(1);
         }
 
+        if (xmlStream == null) {
+            System.err.println("ERREUR : aucun fichier XML trouvé dans le ZIP.");
+            System.exit(1);
+        }
+
+        System.out.println("Téléchargement OK. Parsing XML...");
+
+        // ── 2. Parsing XML ───────────────────────────────────
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(xmlFile);
+        Document doc = builder.parse(xmlStream);
         doc.getDocumentElement().normalize();
 
-        System.out.println("Connexion a MySQL...");
+        // ── 3. Connexion MySQL ───────────────────────────────
+        System.out.println("Connexion à MySQL...");
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         conn.setAutoCommit(false);
 
+        // ── 4. Nettoyage des tables ──────────────────────────
         System.out.println("Nettoyage des tables...");
         conn.createStatement().executeUpdate("DELETE FROM horaires");
         conn.createStatement().executeUpdate("DELETE FROM prix");
         conn.createStatement().executeUpdate("DELETE FROM station");
 
+        // ── 5. Préparation des requêtes ──────────────────────
         PreparedStatement psStation = conn.prepareStatement(
             "INSERT IGNORE INTO station " +
             "(id_station, latitude, longitude, adresse, ville, cp, automate, lavage, gonflage, nom_affiche) " +
@@ -49,6 +106,7 @@ public class ImportOpenData {
             "INSERT INTO horaires (id_station, jour, ouverture, fermeture) VALUES (?,?,?,?)"
         );
 
+        // ── 6. Import des stations ───────────────────────────
         NodeList pdvList = doc.getElementsByTagName("pdv");
         int total  = pdvList.getLength();
         int count  = 0;
@@ -61,14 +119,12 @@ public class ImportOpenData {
                 Element pdv = (Element) pdvList.item(i);
 
                 long   id        = Long.parseLong(pdv.getAttribute("id"));
-                // Coordonnees en PTV_GEODECIMAL -> diviser par 100 000
                 double latitude  = parseDoubleSafe(pdv.getAttribute("latitude"))  / 100000.0;
                 double longitude = parseDoubleSafe(pdv.getAttribute("longitude")) / 100000.0;
                 String cp        = pdv.getAttribute("cp");
                 String ville     = getTagText(pdv, "ville");
                 String adresse   = getTagText(pdv, "adresse");
 
-                // Noms exacts des services dans le XML du gouvernement
                 boolean gonflage = hasService(pdv, "Station de gonflage");
                 boolean lavage   = hasService(pdv, "Lavage automatique")
                                 || hasService(pdv, "Lavage manuel");
@@ -86,13 +142,12 @@ public class ImportOpenData {
                 psStation.setNull   (10, Types.VARCHAR);
                 psStation.executeUpdate();
 
-                // Prix : les valeurs sont DEJA en euros/litre (ex: 2.090)
-                // PAS de division par 1000 !
+                // Prix
                 NodeList prixList = pdv.getElementsByTagName("prix");
                 for (int j = 0; j < prixList.getLength(); j++) {
-                    Element p       = (Element) prixList.item(j);
-                    String  nom     = p.getAttribute("nom");
-                    String  valStr  = p.getAttribute("valeur");
+                    Element p      = (Element) prixList.item(j);
+                    String  nom    = p.getAttribute("nom");
+                    String  valStr = p.getAttribute("valeur");
                     String  dateMaj = p.getAttribute("maj");
                     if (nom.isEmpty() || valStr.isEmpty()) continue;
 
@@ -112,7 +167,6 @@ public class ImportOpenData {
                     try { numJour = Integer.parseInt(jour.getAttribute("id")); }
                     catch (NumberFormatException e) { continue; }
 
-                    // ferme="1" = station fermee ce jour
                     if ("1".equals(jour.getAttribute("ferme"))) continue;
 
                     NodeList horaires = jour.getElementsByTagName("horaire");
@@ -124,12 +178,11 @@ public class ImportOpenData {
                             if (ouv.isEmpty() || fer.isEmpty()) continue;
                             psHoraire.setLong  (1, id);
                             psHoraire.setInt   (2, numJour);
-                            psHoraire.setString(3, ouv);
-                            psHoraire.setString(4, fer);
+                            psHoraire.setString(3, ouv.replace(".", ":"));
+                            psHoraire.setString(4, fer.replace(".", ":"));
                             psHoraire.executeUpdate();
                         }
                     } else {
-                        // Pas d'heure precise : on note ouvert toute la journee
                         psHoraire.setLong  (1, id);
                         psHoraire.setInt   (2, numJour);
                         psHoraire.setString(3, "00:00");
@@ -141,7 +194,7 @@ public class ImportOpenData {
                 count++;
                 if (count % 500 == 0) {
                     conn.commit();
-                    System.out.println("  -> " + count + " / " + total + " stations importees...");
+                    System.out.println("  -> " + count + " / " + total + " stations importées...");
                 }
 
             } catch (Exception e) {
@@ -153,12 +206,11 @@ public class ImportOpenData {
         conn.commit();
         conn.close();
 
-        System.out.println("=========================================");
-        System.out.println("Import termine !");
-        System.out.println("Stations importees : " + count);
-        System.out.println("Erreurs ignorees   : " + errors);
-        System.out.println("=========================================");
-        System.out.println("Va verifier dans phpMyAdmin puis lance Tomcat !");
+        System.out.println("================================================");
+        System.out.println("Import terminé !");
+        System.out.println("Stations importées : " + count);
+        System.out.println("Erreurs ignorées   : " + errors);
+        System.out.println("================================================");
     }
 
     static boolean isAutomate(Element pdv) {
