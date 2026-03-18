@@ -195,4 +195,4 @@ public class NearStationApiServlet extends HttpServlet {
         if (text == null) return "";
         return text.replace("\\", "\\\\").replace("\"", "\\\"");
     }
-}ok
+}
