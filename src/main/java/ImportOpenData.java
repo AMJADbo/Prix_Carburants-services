@@ -5,115 +5,169 @@ import org.w3c.dom.*;
 
 public class ImportOpenData {
 
-    static final String URL  = "jdbc:mysql://localhost:3306/carburants";
-    static final String USER = "root";
-    static final String PASS = "";
+    static final String DB_URL  = "jdbc:mysql://localhost:3306/carburants";
+    static final String DB_USER = "root";
+    static final String DB_PASS = "";
+
+    // Chemin exact d'après tes captures
+    static final String XML_PATH = "/Users/amjadbouicha/Desktop/opendata/PrixCarburants_instantane.xml";
 
     public static void main(String[] args) throws Exception {
 
-        // ← change ce chemin vers ton fichier XML dézippé
-        File xmlFile = new File("PrixCarburants_instantane.xml");
+        System.out.println("Lecture du fichier XML...");
+        File xmlFile = new File(XML_PATH);
+
+        if (!xmlFile.exists()) {
+            System.err.println("ERREUR : fichier introuvable -> " + XML_PATH);
+            return;
+        }
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(xmlFile);
         doc.getDocumentElement().normalize();
 
+        System.out.println("Connexion a MySQL...");
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(URL, USER, PASS);
+        Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         conn.setAutoCommit(false);
 
-        // Vide les tables avant import
+        System.out.println("Nettoyage des tables...");
         conn.createStatement().executeUpdate("DELETE FROM horaires");
         conn.createStatement().executeUpdate("DELETE FROM prix");
         conn.createStatement().executeUpdate("DELETE FROM station");
 
         PreparedStatement psStation = conn.prepareStatement(
-            "INSERT IGNORE INTO station VALUES (?,?,?,?,?,?,?,?,?,?)"
+            "INSERT IGNORE INTO station " +
+            "(id_station, latitude, longitude, adresse, ville, cp, automate, lavage, gonflage, nom_affiche) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?)"
         );
         PreparedStatement psPrix = conn.prepareStatement(
-            "INSERT INTO prix (id_station,nom_carburant,prix,date_maj) VALUES (?,?,?,?)"
+            "INSERT INTO prix (id_station, nom_carburant, prix, date_maj) VALUES (?,?,?,?)"
         );
         PreparedStatement psHoraire = conn.prepareStatement(
-            "INSERT INTO horaires (id_station,jour,ouverture,fermeture) VALUES (?,?,?,?)"
+            "INSERT INTO horaires (id_station, jour, ouverture, fermeture) VALUES (?,?,?,?)"
         );
 
         NodeList pdvList = doc.getElementsByTagName("pdv");
-        int count = 0;
+        int total  = pdvList.getLength();
+        int count  = 0;
+        int errors = 0;
 
-        for (int i = 0; i < pdvList.getLength(); i++) {
-            Element pdv = (Element) pdvList.item(i);
+        System.out.println("Import de " + total + " stations...");
 
-            long   id        = Long.parseLong(pdv.getAttribute("id"));
-            // ← Division par 100 000 pour convertir en degrés décimaux
-            double latitude  = Double.parseDouble(pdv.getAttribute("latitude"))  / 100000.0;
-            double longitude = Double.parseDouble(pdv.getAttribute("longitude")) / 100000.0;
-            String cp        = pdv.getAttribute("cp");
-            String ville     = getTagText(pdv, "ville");
-            String adresse   = getTagText(pdv, "adresse");
+        for (int i = 0; i < total; i++) {
+            try {
+                Element pdv = (Element) pdvList.item(i);
 
-            // Services
-            boolean lavage   = hasService(pdv, "Lavage automatique");
-            boolean gonflage = hasService(pdv, "Gonflage pneus");
-            boolean automate = hasService(pdv, "Automate CB 24/24");
+                long   id        = Long.parseLong(pdv.getAttribute("id"));
+                // Coordonnees en PTV_GEODECIMAL -> diviser par 100 000
+                double latitude  = parseDoubleSafe(pdv.getAttribute("latitude"))  / 100000.0;
+                double longitude = parseDoubleSafe(pdv.getAttribute("longitude")) / 100000.0;
+                String cp        = pdv.getAttribute("cp");
+                String ville     = getTagText(pdv, "ville");
+                String adresse   = getTagText(pdv, "adresse");
 
-            psStation.setLong   (1, id);
-            psStation.setDouble (2, latitude);
-            psStation.setDouble (3, longitude);
-            psStation.setString (4, adresse);
-            psStation.setString (5, ville);
-            psStation.setString (6, cp);
-            psStation.setBoolean(7, automate);
-            psStation.setBoolean(8, lavage);
-            psStation.setBoolean(9, gonflage);
-            psStation.setString (10, null);
-            psStation.executeUpdate();
+                // Noms exacts des services dans le XML du gouvernement
+                boolean gonflage = hasService(pdv, "Station de gonflage");
+                boolean lavage   = hasService(pdv, "Lavage automatique")
+                                || hasService(pdv, "Lavage manuel");
+                boolean automate = isAutomate(pdv);
 
-            // Prix
-            NodeList prixList = pdv.getElementsByTagName("prix");
-            for (int j = 0; j < prixList.getLength(); j++) {
-                Element p = (Element) prixList.item(j);
-                String nom   = p.getAttribute("nom");
-                String valStr = p.getAttribute("valeur");
-                String dateMaj = p.getAttribute("maj");
-                if (nom.isEmpty() || valStr.isEmpty()) continue;
-                double valeur = Double.parseDouble(valStr.replace(",", ".")) / 1000.0;
+                psStation.setLong   (1, id);
+                psStation.setDouble (2, latitude);
+                psStation.setDouble (3, longitude);
+                psStation.setString (4, adresse);
+                psStation.setString (5, ville);
+                psStation.setString (6, cp);
+                psStation.setBoolean(7, automate);
+                psStation.setBoolean(8, lavage);
+                psStation.setBoolean(9, gonflage);
+                psStation.setNull   (10, Types.VARCHAR);
+                psStation.executeUpdate();
 
-                psPrix.setLong  (1, id);
-                psPrix.setString(2, nom);
-                psPrix.setDouble(3, valeur);
-                psPrix.setString(4, dateMaj);
-                psPrix.executeUpdate();
-            }
+                // Prix : les valeurs sont DEJA en euros/litre (ex: 2.090)
+                // PAS de division par 1000 !
+                NodeList prixList = pdv.getElementsByTagName("prix");
+                for (int j = 0; j < prixList.getLength(); j++) {
+                    Element p       = (Element) prixList.item(j);
+                    String  nom     = p.getAttribute("nom");
+                    String  valStr  = p.getAttribute("valeur");
+                    String  dateMaj = p.getAttribute("maj");
+                    if (nom.isEmpty() || valStr.isEmpty()) continue;
 
-            // Horaires
-            NodeList jourList = pdv.getElementsByTagName("jour");
-            for (int j = 0; j < jourList.getLength(); j++) {
-                Element jour = (Element) jourList.item(j);
-                int numJour = Integer.parseInt(jour.getAttribute("id"));
-                NodeList horaires = jour.getElementsByTagName("horaire");
-                for (int k = 0; k < horaires.getLength(); k++) {
-                    Element h = (Element) horaires.item(k);
-                    String ouv = h.getAttribute("ouverture");
-                    String fer = h.getAttribute("fermeture");
-                    psHoraire.setLong  (1, id);
-                    psHoraire.setInt   (2, numJour);
-                    psHoraire.setString(3, ouv);
-                    psHoraire.setString(4, fer);
-                    psHoraire.executeUpdate();
+                    double valeur = parseDoubleSafe(valStr.replace(",", "."));
+                    psPrix.setLong  (1, id);
+                    psPrix.setString(2, nom);
+                    psPrix.setDouble(3, valeur);
+                    psPrix.setString(4, dateMaj.isEmpty() ? null : dateMaj);
+                    psPrix.executeUpdate();
                 }
-            }
 
-            count++;
-            if (count % 500 == 0) {
-                conn.commit();
-                System.out.println(count + " stations importées...");
+                // Horaires
+                NodeList jourList = pdv.getElementsByTagName("jour");
+                for (int j = 0; j < jourList.getLength(); j++) {
+                    Element jour = (Element) jourList.item(j);
+                    int numJour;
+                    try { numJour = Integer.parseInt(jour.getAttribute("id")); }
+                    catch (NumberFormatException e) { continue; }
+
+                    // ferme="1" = station fermee ce jour
+                    if ("1".equals(jour.getAttribute("ferme"))) continue;
+
+                    NodeList horaires = jour.getElementsByTagName("horaire");
+                    if (horaires.getLength() > 0) {
+                        for (int k = 0; k < horaires.getLength(); k++) {
+                            Element h   = (Element) horaires.item(k);
+                            String  ouv = h.getAttribute("ouverture");
+                            String  fer = h.getAttribute("fermeture");
+                            if (ouv.isEmpty() || fer.isEmpty()) continue;
+                            psHoraire.setLong  (1, id);
+                            psHoraire.setInt   (2, numJour);
+                            psHoraire.setString(3, ouv);
+                            psHoraire.setString(4, fer);
+                            psHoraire.executeUpdate();
+                        }
+                    } else {
+                        // Pas d'heure precise : on note ouvert toute la journee
+                        psHoraire.setLong  (1, id);
+                        psHoraire.setInt   (2, numJour);
+                        psHoraire.setString(3, "00:00");
+                        psHoraire.setString(4, "23:59");
+                        psHoraire.executeUpdate();
+                    }
+                }
+
+                count++;
+                if (count % 500 == 0) {
+                    conn.commit();
+                    System.out.println("  -> " + count + " / " + total + " stations importees...");
+                }
+
+            } catch (Exception e) {
+                errors++;
+                if (errors <= 5) System.err.println("Erreur index " + i + " : " + e.getMessage());
             }
         }
 
         conn.commit();
-        System.out.println("Import terminé : " + count + " stations.");
         conn.close();
+
+        System.out.println("=========================================");
+        System.out.println("Import termine !");
+        System.out.println("Stations importees : " + count);
+        System.out.println("Erreurs ignorees   : " + errors);
+        System.out.println("=========================================");
+        System.out.println("Va verifier dans phpMyAdmin puis lance Tomcat !");
+    }
+
+    static boolean isAutomate(Element pdv) {
+        NodeList hn = pdv.getElementsByTagName("horaires");
+        if (hn.getLength() > 0) {
+            String val = ((Element) hn.item(0)).getAttribute("automate-24-24");
+            return val != null && !val.isEmpty();
+        }
+        return false;
     }
 
     static String getTagText(Element parent, String tag) {
@@ -128,5 +182,11 @@ public class ImportOpenData {
             if (services.item(i).getTextContent().trim().equals(nom)) return true;
         }
         return false;
+    }
+
+    static double parseDoubleSafe(String val) {
+        if (val == null || val.trim().isEmpty()) return 0.0;
+        try { return Double.parseDouble(val.trim()); }
+        catch (NumberFormatException e) { return 0.0; }
     }
 }
