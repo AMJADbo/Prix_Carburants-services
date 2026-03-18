@@ -23,16 +23,16 @@ function getPosition() {
 // Appel API
 async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resCourant, avecLavage, avecGonflage }) {
   const params = new URLSearchParams({
-    lat:        lat,
-    lon:        lng,
-    radius:     rayon,
-    carburant:  carburant,
-    conso:      conso,
-    resTotal:   resTotal,
+    lat: lat,
+    lon: lng,
+    radius: rayon,
+    carburant: carburant,
+    conso: conso,
+    resTotal: resTotal,
     resCourant: resCourant,
   });
 
-  if (avecLavage)   params.set('lavage',   'true');
+  if (avecLavage) params.set('lavage', 'true');
   if (avecGonflage) params.set('gonflage', 'true');
 
   const res = await fetch(`${API_BASE}/api/stations/near?${params.toString()}`);
@@ -42,12 +42,12 @@ async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resC
 
 // Rendu principal
 async function renderStations() {
-  const carburant    = document.getElementById('filtre-carburant').value;
-  const conso        = parseFloat(document.getElementById('filtre-conso').value);
-  const rayon        = parseFloat(document.getElementById('filtre-rayon').value);
-  const resTotal     = parseFloat(document.getElementById('filtre-res-total').value);
-  const resCourant   = parseFloat(document.getElementById('filtre-res-courant').value);
-  const avecLavage   = document.getElementById('filtre-lavage').checked;
+  const carburant = document.getElementById('filtre-carburant').value;
+  const conso = parseFloat(document.getElementById('filtre-conso').value);
+  const rayon = parseFloat(document.getElementById('filtre-rayon').value);
+  const resTotal = parseFloat(document.getElementById('filtre-res-total').value);
+  const resCourant = parseFloat(document.getElementById('filtre-res-courant').value);
+  const avecLavage = document.getElementById('filtre-lavage').checked;
   const avecGonflage = document.getElementById('filtre-gonflage').checked;
 
   const viewListe = document.getElementById('view-liste');
@@ -87,7 +87,7 @@ async function renderStations() {
       : resultats.map(s => `
         <div class="station-card">
           <div class="card-top">
-            <div class="rank">${s.rang}</div>
+            <div class="rank">${s.rang ?? '-'}</div>
             <div class="station-name">
               ${escapeHtml(s.adresse)}, ${escapeHtml(s.ville)}
               ${s.rang === 1 ? '<span class="badge-best">Meilleur choix</span>' : ''}
@@ -95,7 +95,7 @@ async function renderStations() {
           </div>
           <div class="card-price-row">
             <div class="card-price">
-              ${s.prixCarburant !== null ? s.prixCarburant.toFixed(3) + ' €/L' : 'Prix indisponible'}
+              ${s.prixCarburant !== null ? Number(s.prixCarburant).toFixed(3) + ' €/L' : 'Prix indisponible'}
             </div>
             <div class="card-distance">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-cursor" viewBox="0 0 16 16">
@@ -112,9 +112,9 @@ async function renderStations() {
             ${s.dateMaj ? getUpdateText(s.dateMaj) : 'Date inconnue'}
           </div>
           <div class="card-footer">
-            <span class="card-total">Coût total estimé : ${s.coutTotal.toFixed(2)} €</span>
+            <span class="card-total">Coût total estimé : ${s.coutTotal != null ? Number(s.coutTotal).toFixed(2) + ' €' : 'Non calculé'} €</span>
             <div class="card-services">
-              ${s.lavage   ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><path d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65"/></svg> Lavage</span>' : ''}
+              ${s.lavage ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-water" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><path d="M.036 3.314a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0L.314 3.964a.5.5 0 0 1-.278-.65m0 3a.5.5 0 0 1 .65-.278l1.757.703a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.014-.406a2.5 2.5 0 0 1 1.857 0l1.015.406a1.5 1.5 0 0 0 1.114 0l1.757-.703a.5.5 0 1 1 .372.928l-1.758.703a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.014-.406a1.5 1.5 0 0 0-1.114 0l-1.015.406a2.5 2.5 0 0 1-1.857 0l-1.757-.703a.5.5 0 0 1-.278-.65"/></svg> Lavage</span>' : ''}
               ${s.gonflage ? '<span class="service-tag"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wind" viewBox="0 0 16 16"><path d="M12.5 2A2.5 2.5 0 0 0 10 4.5a.5.5 0 0 1-1 0A3.5 3.5 0 1 1 12.5 8H.5a.5.5 0 0 1 0-1h12a2.5 2.5 0 0 0 0-5m-7 1a1 1 0 0 0-1 1 .5.5 0 0 1-1 0 2 2 0 1 1 2 2h-5a.5.5 0 0 1 0-1h5a1 1 0 0 0 0-2M0 9.5A.5.5 0 0 1 .5 9h10.042a3 3 0 1 1-3 3 .5.5 0 0 1 1 0 2 2 0 1 0 2-2H.5a.5.5 0 0 1-.5-.5"/></svg> Gonflage</span>' : ''}
             </div>
           </div>
@@ -173,7 +173,7 @@ function renderStationsOnMap(stations) {
           <div class="marker-label-box">
             ${escapeHtml(station.adresse)}<br>
             <span class="marker-price">
-              ${station.prixCarburant !== null ? station.prixCarburant.toFixed(3) + ' €/L' : '–'}
+              ${station.prixCarburant !== null ? Number(station.prixCarburant).toFixed(3) + ' €/L' : '-'}
             </span>
           </div>
         </div>
@@ -239,7 +239,7 @@ function getUpdateText(dateStr) {
   const diffH = Math.floor((now - dateMaj) / (1000 * 60 * 60));
   const diffD = Math.floor(diffH / 24);
   if (diffD >= 1) return diffD === 1 ? "Mis à jour il y a environ 1 jour" : `Mis à jour il y a environ ${diffD} jours`;
-  if (diffH < 1)  return "Mis à jour il y a moins d'1 heure";
+  if (diffH < 1) return "Mis à jour il y a moins d'1 heure";
   if (diffH === 1) return "Mis à jour il y a environ 1 heure";
   return `Mis à jour il y a environ ${diffH} heures`;
 }
@@ -270,3 +270,14 @@ if (tabListe && tabCarte) {
   tabListe.addEventListener('click', () => localStorage.setItem('activeTab', 'liste'));
   tabCarte.addEventListener('click', () => localStorage.setItem('activeTab', 'carte'));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderStations();
+  document.getElementById('filtre-carburant')?.addEventListener('change', renderStations);
+  document.getElementById('filtre-conso')?.addEventListener('input', renderStations);
+  document.getElementById('filtre-rayon')?.addEventListener('input', renderStations);
+  document.getElementById('filtre-res-total')?.addEventListener('input', renderStations);
+  document.getElementById('filtre-res-courant')?.addEventListener('input', renderStations);
+  document.getElementById('filtre-lavage')?.addEventListener('change', renderStations);
+  document.getElementById('filtre-gonflage')?.addEventListener('change', renderStations);
+});
