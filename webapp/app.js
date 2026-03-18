@@ -1,17 +1,11 @@
-// ============================================================
-//  app.js — liaison avec le backend réel
-//  Remplace l'ancien appel à window.mockData.getMockStations()
-//  par un fetch vers GET /api/stations/near
-// ============================================================
-
-// URL de base de l'API backend (adapter si besoin)
+// URL de base de l'API backend
 const API_BASE = 'http://localhost:8080/Prix_Carburants-services';
 
 // Position de l'utilisateur (mise à jour par la géolocalisation)
 let userLat = null;
 let userLng = null;
 
-// ── Géolocalisation ──────────────────────────────────────────
+// Géolocalisation
 function getPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -26,7 +20,7 @@ function getPosition() {
   });
 }
 
-// ── Appel API ────────────────────────────────────────────────
+// Appel API
 async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resCourant, avecLavage, avecGonflage }) {
   const params = new URLSearchParams({
     lat:        lat,
@@ -46,7 +40,7 @@ async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resC
   return res.json(); // tableau de stations
 }
 
-// ── Rendu principal ──────────────────────────────────────────
+// Rendu principal
 async function renderStations() {
   const carburant    = document.getElementById('filtre-carburant').value;
   const conso        = parseFloat(document.getElementById('filtre-conso').value);
@@ -67,7 +61,7 @@ async function renderStations() {
         userLat = pos.lat;
         userLng = pos.lng;
       } catch (e) {
-        // Position par défaut : Paris centre
+        // Position par défaut : Paris
         userLat = 48.866;
         userLng = 2.333;
         console.warn("Géolocalisation échouée, position par défaut utilisée.", e.message);
@@ -80,7 +74,7 @@ async function renderStations() {
       avecLavage, avecGonflage,
     });
 
-    // ── Les champs venant de l'API sont en camelCase ─────────
+    // Les champs venant de l'API sont en camelCase
     // idStation, latitude, longitude, adresse, ville, cp,
     // automate, lavage, gonflage, nomAffiche,
     // prixCarburant, dateMaj, nomCarburant, coutTotal, distance, rang
@@ -139,7 +133,7 @@ async function renderStations() {
   }
 }
 
-// ── Carte Leaflet ────────────────────────────────────────────
+// Carte Leaflet
 function renderStationsOnMap(stations) {
   const centerLat = userLat || 48.866;
   const centerLng = userLng || 2.333;
@@ -233,7 +227,7 @@ function observeMapVisibility() {
   observer.observe(mapDiv.parentElement, { attributes: true, attributeFilter: ['class'] });
 }
 
-// ── Utilitaires ──────────────────────────────────────────────
+// Utilitaires
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -250,7 +244,7 @@ function getUpdateText(dateStr) {
   return `Mis à jour il y a environ ${diffH} heures`;
 }
 
-// ── Initialisation ───────────────────────────────────────────
+// Initialisation
 document.addEventListener('DOMContentLoaded', () => {
   const lastTab = localStorage.getItem('activeTab');
   if (lastTab === 'carte') {
