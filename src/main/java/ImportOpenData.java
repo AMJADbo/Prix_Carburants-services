@@ -7,7 +7,7 @@ public class ImportOpenData {
 
     static final String DB_URL  = "jdbc:mysql://localhost:3306/carburants";
     static final String DB_USER = "root";
-    static final String DB_PASS = "";
+    static final String DB_PASS = "root";
 
     // Chemin exact d'après tes captures
     static final String XML_PATH = "/Users/amjadbouicha/Desktop/opendata/PrixCarburants_instantane.xml";
