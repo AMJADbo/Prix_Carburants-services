@@ -1,2 +1,11 @@
+/build/
+/bin/
+/target/
+
 .classpath
 .project
+.settings/
+
+*.class
+*.log
+.DS_Store

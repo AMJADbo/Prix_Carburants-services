@@ -8,6 +8,7 @@ public class Station {
     private String adresse;
     private String ville;
     private String cp;
+    private double distance;
     private boolean automate;
     private boolean lavage;
     private boolean gonflage;
@@ -24,7 +25,7 @@ public class Station {
         this.adresse = adresse;
         this.ville = ville;
         this.cp = cp;
-        this.automate = automate;
+        this.automate = automate24h;
         this.lavage = lavage;
         this.gonflage = gonflage;
         this.nomAffiche = nomAffiche;
@@ -83,7 +84,7 @@ public class Station {
     }
 
     public void setAutomate24h(boolean automate24h) {
-        this.automate = automate;
+        this.automate = automate24h;
     }
 
     public boolean isLavage() {
@@ -96,6 +97,13 @@ public class Station {
 
     public boolean isGonflage() {
         return gonflage;
+    }
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
     }
 
     public void setGonflage(boolean gonflage) {
