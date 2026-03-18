@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.util.List;
 
+import dao.HoraireDAO;
 import dao.PriceDAO;
 import dao.StationDAO;
 import jakarta.servlet.ServletException;
@@ -12,9 +13,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Price;
 import model.Station;
-import dao.HoraireDAO;
 import model.horaire;
 
+/**
+ * Retourne les détails complets d'une station : infos, prix, horaires.
+ * Endpoint : GET /api/stations/details?id={idStation}
+ *
+ * CORRECTION : le JSON précédent fermait l'objet racine } avant d'écrire
+ * ,"horaires":[...], ce qui produisait un JSON invalide.
+ */
 @WebServlet("/api/stations/details")
 public class StationDetailsApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -34,7 +41,6 @@ public class StationDetailsApiServlet extends HttpServlet {
         }
 
         long idStation;
-
         try {
             idStation = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
@@ -45,21 +51,22 @@ public class StationDetailsApiServlet extends HttpServlet {
         StationDAO stationDAO = new StationDAO();
         PriceDAO priceDAO = new PriceDAO();
         HoraireDAO horaireDAO = new HoraireDAO();
-        
+
         Station station = stationDAO.findById(idStation);
-        List<Price> prices = priceDAO.findByStationId(idStation);
-        
-        
-        List<horaire> horaires = horaireDAO.findByStationId(idStation);
         if (station == null) {
             response.getWriter().write("{\"error\":\"station introuvable\"}");
             return;
         }
 
+        List<Price> prices = priceDAO.findByStationId(idStation);
+        List<horaire> horaires = horaireDAO.findByStationId(idStation);
+
         StringBuilder json = new StringBuilder();
 
+        // --- objet racine OUVERT ---
         json.append("{");
 
+        // station
         json.append("\"station\":{")
             .append("\"idStation\":").append(station.getIdStation()).append(",")
             .append("\"latitude\":").append(station.getLatitude()).append(",")
@@ -73,10 +80,10 @@ public class StationDetailsApiServlet extends HttpServlet {
             .append("\"nomAffiche\":\"").append(escapeJson(station.getNomAffiche())).append("\"")
             .append("},");
 
+        // prices
         json.append("\"prices\":[");
         for (int i = 0; i < prices.size(); i++) {
             Price p = prices.get(i);
-
             json.append("{")
                 .append("\"idPrix\":").append(p.getIdPrix()).append(",")
                 .append("\"idStation\":").append(p.getIdStation()).append(",")
@@ -84,39 +91,33 @@ public class StationDetailsApiServlet extends HttpServlet {
                 .append("\"prix\":").append(p.getPrix()).append(",")
                 .append("\"dateMaj\":\"").append(escapeJson(p.getDateMaj())).append("\"")
                 .append("}");
-
-            if (i < prices.size() - 1) {
-                json.append(",");
-            }
+            if (i < prices.size() - 1) json.append(",");
         }
-        json.append("]");
+        json.append("],");
 
-        json.append("}");
-        json.append(",\"horaires\":[");
+        // horaires
+        json.append("\"horaires\":[");
         for (int i = 0; i < horaires.size(); i++) {
             horaire h = horaires.get(i);
-
             json.append("{")
                 .append("\"idHoraire\":").append(h.getIdHoraire()).append(",")
-                .append("\"jour\":\"").append(h.getJour()).append("\",")
-                .append("\"ouverture\":\"").append(h.getOuverture()).append("\",")
-                .append("\"fermeture\":\"").append(h.getFermeture()).append("\"")
+                .append("\"idStation\":").append(h.getIdStation()).append(",")
+                .append("\"jour\":").append(h.getJour()).append(",")
+                .append("\"ouverture\":\"").append(escapeJson(h.getOuverture())).append("\",")
+                .append("\"fermeture\":\"").append(escapeJson(h.getFermeture())).append("\"")
                 .append("}");
-
-            if (i < horaires.size() - 1) {
-                json.append(",");
-            }
+            if (i < horaires.size() - 1) json.append(",");
         }
-
         json.append("]");
+
+        // --- objet racine FERMÉ (manquait dans la version originale) ---
+        json.append("}");
+
         response.getWriter().write(json.toString());
     }
-         
+
     private String escapeJson(String text) {
-        if (text == null) {
-            return "";
-        }
+        if (text == null) return "";
         return text.replace("\\", "\\\\").replace("\"", "\\\"");
     }
-    
 }
