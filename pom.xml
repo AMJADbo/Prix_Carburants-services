@@ -1,7 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- Le fichier pom.xml (Project Object Model) est le fichier de configuration Maven qui définit les dépendances, plugins et paramètres de build du projet -->
 
-
-<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Balise racine du projet Maven avec les namespaces XML -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
