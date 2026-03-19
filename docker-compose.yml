@@ -1,6 +1,9 @@
+# Le fichier docker-compose.yml orchestre les conteneurs Docker du projet (base de données + application)
+
+
 services:
 
-  # ── Base de données MySQL ──────────────────────────────────
+  # Base de données MySQL
   db:
     image: mysql:8.0
     container_name: carburants-db
@@ -11,16 +14,21 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      # Stockage persistent des donnéees MySQL
       - db_data:/var/lib/mysql
+      # Script SQL exécuté automatiquement au premir démarrage
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
+      # Tester si MySQL répond
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 15
 
-  # ── Application Tomcat ────────────────────────────────────
+
+  # Application Tomcat
   app:
+    # Construit l'image à partir du Dockerfile du répertoire courant
     build: .
     container_name: carburants-app
     restart: unless-stopped
@@ -31,9 +39,12 @@ services:
       DB_URL: jdbc:mysql://db:3306/carburants?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Paris
       DB_USER: root
       DB_PASS: root
+    # Dépendances entre services
     depends_on:
       db:
+        # Attend que le healthcheck de DB soit réussi avant de démarrer
         condition: service_healthy
 
 volumes:
+  # Stocker les données MySQL de manière persistante
   db_data:

@@ -1,53 +1,84 @@
+<!-- Le fichier pom.xml (Project Object Model) est le fichier de configuration Maven qui définit les dépendances, plugins et paramètres de build du projet -->
+
+
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Balise racine du projet Maven avec les namespaces XML -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                             
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- Identifiant du groupe/organisation (convention : domaine inversé pour créer un identifiant unique) -->
   <groupId>fr.carburants</groupId>
+  <!-- Nom du projet -->
   <artifactId>Prix_Carburants-services</artifactId>
   <version>1.0</version>
+  <!-- Type de packaging : WAR (Web Application Archive) pour déploiement sur Tomcat -->
   <packaging>war</packaging>
 
+  <!-- Propriétés globales du projet -->
   <properties>
+    <!-- Version de Java utilisée pour compiler le code source -->
     <maven.compiler.source>11</maven.compiler.source>
+    <!-- Vesrion de Java ciblée pour le bytecode (code intermédiaire entre le code Java et le langage machine) généré -->
     <maven.compiler.target>11</maven.compiler.target>
+    <!-- Encodage des fichiers source en UTF-8 (accents, caractères spéciaux, ...) -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <!-- Liste des dépendances -->
   <dependencies>
 
     <!-- Jakarta Servlet API (fournie par Tomcat 10, non incluse dans le WAR) -->
     <dependency>
+      <!-- Organisation qui fournit la dépendance -->
       <groupId>jakarta.servlet</groupId>
+      <!-- Nom de la bibiothèque -->
       <artifactId>jakarta.servlet-api</artifactId>
+      <!-- Version spécifiqur de l"API -->
       <version>6.0.0</version>
+      <!-- "provided" : fournie par le serveur Tomcat, ne sera pas incluse dans le WAR -->
       <scope>provided</scope>
     </dependency>
 
     <!-- Driver MySQL (déjà présent dans WEB-INF/lib, on le déclare pour la compile) -->
     <dependency>
+      <!-- Organisation MySQL -->
       <groupId>com.mysql</groupId>
+      <!-- Driver JDBC pour se connecter à MySQL -->
       <artifactId>mysql-connector-j</artifactId>
+      <!-- Version du driver -->
       <version>9.6.0</version>
     </dependency>
 
   </dependencies>
 
+  <!-- Configuration de la construction du projet -->
   <build>
     <!-- Sources Java -->
     <sourceDirectory>src/main/java</sourceDirectory>
 
     <!-- Ressources web -->
+    <!-- Liste des plugins Maven utilisés pour le build -->
     <plugins>
+      <!-- Plugin pour créer le fichier WAR -->
       <plugin>
+        <!-- Organisation Apache Maven -->
         <groupId>org.apache.maven.plugins</groupId>
+        <!-- Plugin de création de WAR -->
         <artifactId>maven-war-plugin</artifactId>
+        <!-- Version du plugin -->
         <version>3.4.0</version>
+        <!-- Configuration spécifique du plugin -->
         <configuration>
+          <!-- Répertoire contenant les ressources web -->
           <warSourceDirectory>src/main/webapp</warSourceDirectory>
+          <!-- Exige la présence du fichier web.xml -->
           <failOnMissingWebXml>true</failOnMissingWebXml>
+          <!-- Nom du fichier WAR généré -->
           <warName>Prix_Carburants-services</warName>
         </configuration>
       </plugin>

@@ -1,11 +1,20 @@
+# Fichiers compilés et de construction du projet
 /build/
+# Binaires
 /bin/
+# Fichiers de compilation créés par Maven
 /target/
 
+# Fichier de configuration Eclipse
 .classpath
+# Fichier de métadonnées du projet Eclipse ("carte d'identité" du projet)
 .project
+# Repértoire de configuration spécifique à l'IDE Eclipse
 .settings/
 
+# Fichiers .class
 *.class
+# Logs générés
 *.log
+# Fichiers système cachés
 .DS_Store
