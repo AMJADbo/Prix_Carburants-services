@@ -1,3 +1,5 @@
+// Le fichier NearStationApiServlet.java expose une API REST qui retourne les stations-service proches de l'utilisateur, triées par coût total (prix + trajet)
+
 package controller;
 
 import java.io.IOException;
@@ -39,13 +41,20 @@ import service.DistanceService;
 public class NearStationApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
+    // --------------------------------------------------
+    // Méthode GET : Récupération des stations proches
+    // --------------------------------------------------
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Récupération des paramètres de requête GET
+        // Paramètres obligatoires
         String latParam      = request.getParameter("lat");
         String lonParam      = request.getParameter("lon");
         String radiusParam   = request.getParameter("radius");
+        // Paramètre soptionnels
         String carburant     = request.getParameter("carburant");
         String lavageParam   = request.getParameter("lavage");
         String gonflageParam = request.getParameter("gonflage");
@@ -54,20 +63,26 @@ public class NearStationApiServlet extends HttpServlet {
         String resTotalParam = request.getParameter("resTotal");
         String resCourantParam = request.getParameter("resCourant");
 
+        // Configure la réponse HTTP en JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        // Validation des paramètres obligatoires
         if (latParam == null || lonParam == null || radiusParam == null) {
             response.getWriter().write("{\"error\":\"parametres lat, lon et radius obligatoires\"}");
             return;
         }
 
+        // Variables pour stocker les valeurs converties
         double lat, lon, radius;
+
+        // Conversion et validation des paramètres obligatoires
         try {
             lat    = Double.parseDouble(latParam);
             lon    = Double.parseDouble(lonParam);
             radius = Double.parseDouble(radiusParam);
         } catch (NumberFormatException e) {
+            // Si la conversion échoue, return une erreur
             response.getWriter().write("{\"error\":\"parametres invalides\"}");
             return;
         }
@@ -77,34 +92,42 @@ public class NearStationApiServlet extends HttpServlet {
         double resTotal   = parseDoubleOrDefault(resTotalParam, 50.0);
         double resCourant = parseDoubleOrDefault(resCourantParam, 20.0);
 
+        // Conversion des filtres booléens
         boolean filterLavage   = "true".equalsIgnoreCase(lavageParam);
         boolean filterGonflage = "true".equalsIgnoreCase(gonflageParam);
         boolean filterAutomate = "true".equalsIgnoreCase(automateParam);
 
+        // Initialisation des DAO
         StationDAO stationDAO = new StationDAO();
         PriceDAO priceDAO     = new PriceDAO();
 
+        // Récupération de toutes les stations depuis la base de données
         List<Station> toutesLesStations = stationDAO.findAllStations();
         List<StationResult> resultats   = new ArrayList<>();
 
+        // Filtrage et calcul pour chaque station
         for (Station station : toutesLesStations) {
 
             // Filtres services
+            // Ignore la station si le filtre est actif et que le service n'est pas disponible
             if (filterLavage   && !station.isLavage())   continue;
             if (filterGonflage && !station.isGonflage()) continue;
             if (filterAutomate && !station.isAutomate())  continue;
 
-            // Distance
+            // Distance entre l'utilisateur et la station
             double distance = DistanceService.calculerDistance(
                     lat, lon,
                     station.getLatitude(), station.getLongitude()
             );
+            // Ignore la station si elle est hors du rayon
             if (distance > radius) continue;
 
             // Prix du carburant demandé
             Price prix = null;
             if (carburant != null && !carburant.trim().isEmpty()) {
+                // Récupère tous les prix de cette station
                 List<Price> prices = priceDAO.findByStationId(station.getIdStation());
+                // Cherche le prix correspondant au type de carburant demandé
                 for (Price p : prices) {
                     if (carburant.trim().equalsIgnoreCase(p.getNomCarburant())) {
                         prix = p;
@@ -115,7 +138,9 @@ public class NearStationApiServlet extends HttpServlet {
                 if (prix == null) continue;
             }
 
+            // Stocke la distance calculée dans l'objet station
             station.setDistance(distance);
+            // Ajoute la station aux résultats avec calcul du coût total
             resultats.add(new StationResult(station, prix, conso, resTotal, resCourant));
         }
 
@@ -126,10 +151,12 @@ public class NearStationApiServlet extends HttpServlet {
         StringBuilder json = new StringBuilder();
         json.append("[");
 
+        // Parcourt chaque résultat pour construire un objet JSON
         for (int i = 0; i < resultats.size(); i++) {
             StationResult r = resultats.get(i);
             Station s = r.station;
 
+            // Construit un objet JSON pour cette station
             json.append("{")
                 .append("\"rang\":").append(i + 1).append(",")
                 .append("\"idStation\":").append(s.getIdStation()).append(",")
@@ -144,32 +171,43 @@ public class NearStationApiServlet extends HttpServlet {
                 .append("\"gonflage\":").append(s.isGonflage()).append(",")
                 .append("\"distance\":").append(Math.round(r.station.getDistance() * 10.0) / 10.0).append(",");
 
+            // Informations sur le prix si dispo
             if (r.prix != null) {
                 json.append("\"prixCarburant\":").append(r.prix.getPrix()).append(",")
                     .append("\"dateMaj\":\"").append(escapeJson(r.prix.getDateMaj())).append("\",")
                     .append("\"nomCarburant\":\"").append(escapeJson(r.prix.getNomCarburant())).append("\",");
             } else {
+                // Si pas de prix, return null
                 json.append("\"prixCarburant\":null,")
                     .append("\"dateMaj\":null,")
                     .append("\"nomCarburant\":null,");
             }
-
+            
+            // Coût total estimé (arrondi à 2 décimales)
             json.append("\"coutTotal\":").append(Math.round(r.coutTotal * 100.0) / 100.0)
                 .append("}");
 
+            // Ajoute une virgule entre les objets, sauf après le dernier
             if (i < resultats.size() - 1) json.append(",");
         }
 
         json.append("]");
+
+        // Envoi de la réponse JSON
         response.getWriter().write(json.toString());
     }
 
-    // ── Classe interne pour calculer le coût total ──────────────────────────
+    // --------------------------------------------------
+    // Classe interne : Calcule du coût total
+    // --------------------------------------------------
+
+    // Classe interne pour encapsuler une station, son prix et le coût total calculé
     private static class StationResult {
         final Station station;
         final Price   prix;
         final double  coutTotal;
 
+        // Construction qui calcule automatique le coût total
         StationResult(Station station, Price prix, double conso, double resTotal, double resCourant) {
             this.station = station;
             this.prix    = prix;
@@ -186,11 +224,17 @@ public class NearStationApiServlet extends HttpServlet {
         }
     }
 
+    // --------------------------------------------------
+    // Méthodes utilitaires
+    // --------------------------------------------------
+
+    // Parse un paramètre en double, return une valeur par défaut en cas d'erreur
     private double parseDoubleOrDefault(String val, double def) {
         if (val == null || val.trim().isEmpty()) return def;
         try { return Double.parseDouble(val); } catch (NumberFormatException e) { return def; }
     }
 
+    // Échappe les caractères spéciaux dans les chaînes JSON pour éviter les injections
     private String escapeJson(String text) {
         if (text == null) return "";
         return text.replace("\\", "\\\\").replace("\"", "\\\"");

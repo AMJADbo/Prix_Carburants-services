@@ -1,7 +1,10 @@
+// Le fichier Station.java est le modèle (POJO) représentant une station-service
+
 package model;
 
 public class Station {
 
+    // Attributs privés
     private long idStation;
     private double latitude;
     private double longitude;
@@ -14,6 +17,7 @@ public class Station {
     private boolean gonflage;
     private String nomAffiche;
 
+    // Constructeurs
     public Station() {
     }
 
@@ -31,6 +35,7 @@ public class Station {
         this.nomAffiche = nomAffiche;
     }
 
+    // Getters et setters
     public long getIdStation() {
         return idStation;
     }
@@ -118,6 +123,7 @@ public class Station {
         this.nomAffiche = nomAffiche;
     }
 
+    // Méthode toString()
     @Override
     public String toString() {
         return "Station{" +

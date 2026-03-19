@@ -1,13 +1,17 @@
+// Le fichier Price.java est le modèle (POJO) représentant un prix de carburant dans une station-service
+
 package model;
 
 public class Price {
 
+    // Attributs privés
     private long idPrix;
     private long idStation;
     private String nomCarburant;
     private double prix;
     private String dateMaj;
 
+    // Constructeurs
     public Price() {
     }
 
@@ -19,6 +23,7 @@ public class Price {
         this.dateMaj = dateMaj;
     }
 
+    // Getters
     public long getIdPrix() {
         return idPrix;
     }
@@ -39,6 +44,7 @@ public class Price {
         return nomCarburant;
     }
 
+    // Setters
     public void setNomCarburant(String nomCarburant) {
         this.nomCarburant = nomCarburant;
     }
@@ -59,6 +65,7 @@ public class Price {
         this.dateMaj = dateMaj;
     }
 
+    // Méthode toString()
     @Override
     public String toString() {
         return "Price{" +

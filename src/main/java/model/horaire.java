@@ -1,13 +1,17 @@
+// Le fichier horaire.java est le modèle (POJO) représentant un horaire d'ouverture d'une station-service
+
 package model;
 
 public class horaire {
 
+    // Attributs privés
     private long idHoraire;
     private long idStation;
     private int jour;
     private String ouverture;
     private String fermeture;
 
+    // Constructeurs
     public horaire() {
     }
 
@@ -19,6 +23,7 @@ public class horaire {
         this.fermeture = fermeture;
     }
 
+    // Getters
     public long getIdHoraire() {
         return idHoraire;
     }
@@ -46,7 +51,8 @@ public class horaire {
     public String getOuverture() {
         return ouverture;
     }
-
+    
+    // Setters
     public void setOuverture(String ouverture) {
         this.ouverture = ouverture;
     }
@@ -59,6 +65,7 @@ public class horaire {
         this.fermeture = fermeture;
     }
 
+    // Méthode toString()
     @Override
     public String toString() {
         return "horaire{" +

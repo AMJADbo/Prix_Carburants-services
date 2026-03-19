@@ -1,3 +1,5 @@
+// Le fichier StationDetailsApiServlet.java expose une API REST qui retourne les détails complets d'une station : informations, prix et horaires
+
 package controller;
 
 import java.io.IOException;
@@ -22,45 +24,67 @@ import model.horaire;
  * CORRECTION : le JSON précédent fermait l'objet racine } avant d'écrire
  * ,"horaires":[...], ce qui produisait un JSON invalide.
  */
+
 @WebServlet("/api/stations/details")
 public class StationDetailsApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+
+    // --------------------------------------------------
+    // Méthode GET : Récupération des détails complets d'une station
+    // --------------------------------------------------
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Récupère le paramètre de requête GET "id"
         String idParam = request.getParameter("id");
 
+        // Configure la réponse HTTP en JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        // Vérifie que l'ID est présent et non vide
         if (idParam == null || idParam.trim().isEmpty()) {
+            // Retourne une erreur JSON si le paramètre est manquant
             response.getWriter().write("{\"error\":\"id station manquant\"}");
             return;
         }
 
+        // Variable pour stocker l'ID de la station après conversion
         long idStation;
+
+        // Conversion et validation du paramètre
         try {
+            // Convertit la chaîne de caractères en nombre long
             idStation = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
+            // Si la conversion échoue, retourne une erreur
             response.getWriter().write("{\"error\":\"id station invalide\"}");
             return;
         }
 
+        // Initialisation des DAO
+        // Crée les objets d'accès aux données pour les 3 tables concernées
         StationDAO stationDAO = new StationDAO();
         PriceDAO priceDAO = new PriceDAO();
         HoraireDAO horaireDAO = new HoraireDAO();
 
+        // Récupération des informations de la station
         Station station = stationDAO.findById(idStation);
+        // Vérifie si la station existe
         if (station == null) {
+            // La station n'existe pas en base de données
             response.getWriter().write("{\"error\":\"station introuvable\"}");
             return;
         }
 
+        // Récupère tous les prix de cette station (différents carburants)
         List<Price> prices = priceDAO.findByStationId(idStation);
+        // Récupère tous les horaires de cette station (7 jours)
         List<horaire> horaires = horaireDAO.findByStationId(idStation);
 
+        // StringBuilder pour construire efficacement la chaîne JSON
         StringBuilder json = new StringBuilder();
 
         // --- objet racine OUVERT ---
@@ -116,8 +140,15 @@ public class StationDetailsApiServlet extends HttpServlet {
         response.getWriter().write(json.toString());
     }
 
+    // --------------------------------------------------
+    // Méthode utilitaire : Échappement JSON
+    // --------------------------------------------------
+
+    // Échappe les caractères spéciaux dans les chaînes JSON pour éviter les injections
     private String escapeJson(String text) {
+        // Si le texte est null, retourne une chaîne vide
         if (text == null) return "";
+        // Échappe les \ et les "
         return text.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
