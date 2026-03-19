@@ -1,3 +1,6 @@
+// Le fichier app.js gère l'affichage dynamique des stations-service : géolocalisation, appels API, rendu de la liste et de la carte
+
+
 // URL de base de l'API backend
 const API_BASE = 'http://localhost:8080/Prix_Carburants-services';
 
@@ -5,23 +8,39 @@ const API_BASE = 'http://localhost:8080/Prix_Carburants-services';
 let userLat = null;
 let userLng = null;
 
+// --------------------------------------------------
 // Géolocalisation
+// --------------------------------------------------
+
+// Récupère la position GPS de l'utilisateur via l'API Geolocation du navigateur
 function getPosition() {
+  // Retourne une Promise pour gérer l'asynchrone
   return new Promise((resolve, reject) => {
+    // Vérifie si le navigateur supporte la géolocalisation
     if (!navigator.geolocation) {
       reject(new Error("Géolocalisation non supportée par ce navigateur."));
       return;
     }
+    // Demande la position actuelle au navigateur
     navigator.geolocation.getCurrentPosition(
+      // Callback en cas de succès : extrait latitute et longitude
       pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      // Callback en cas d'erreur
       err => reject(err),
+      // Options : timeout de 8 secondes max
       { timeout: 8000 }
     );
   });
 }
 
+// --------------------------------------------------
 // Appel API
+// --------------------------------------------------
+
+// Appelle l'API backend pour récupérer les stations proches de l'utilisateur
+// Prend en compte le filtres
 async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resCourant, avecLavage, avecGonflage }) {
+  // Paramètres de requête GET
   const params = new URLSearchParams({
     lat: lat,
     lon: lng,
@@ -32,16 +51,25 @@ async function fetchStations({ lat, lng, carburant, rayon, conso, resTotal, resC
     resCourant: resCourant,
   });
 
+  // Filtres ajoutés seulement si cochés
   if (avecLavage) params.set('lavage', 'true');
   if (avecGonflage) params.set('gonflage', 'true');
 
+  // Appel HTTP GET vers l'API backend
   const res = await fetch(`${API_BASE}/api/stations/near?${params.toString()}`);
+  // Vérifie si la réponse est OK
   if (!res.ok) throw new Error(`Erreur serveur : ${res.status}`);
-  return res.json(); // tableau de stations
+  // Return le tableau de stations JSON
+  return res.json();
 }
 
+// --------------------------------------------------
 // Rendu principal
+// --------------------------------------------------
+
+// Charge et affiche la liste des stations en fonction des filtres
 async function renderStations() {
+  // Récupère les valeurs des filtres depuis les éléments HTML
   const carburant = document.getElementById('filtre-carburant').value;
   const conso = parseFloat(document.getElementById('filtre-conso').value);
   const rayon = parseFloat(document.getElementById('filtre-rayon').value);
@@ -50,38 +78,45 @@ async function renderStations() {
   const avecLavage = document.getElementById('filtre-lavage').checked;
   const avecGonflage = document.getElementById('filtre-gonflage').checked;
 
+  // Sélectionne la zone d'affichage de la liste
   const viewListe = document.getElementById('view-liste');
+  // Affiche un message de chargement
   viewListe.innerHTML = '<p class="placeholder">Chargement en cours…</p>';
 
   try {
     // Récupère la position si on ne l'a pas encore
     if (userLat === null) {
       try {
+        // Essaye de récupérer la position réelle de l'utilisateur
         const pos = await getPosition();
         userLat = pos.lat;
         userLng = pos.lng;
       } catch (e) {
-        // Position par défaut : Paris
+        // En cas d'échec : position par défaut : Paris
         userLat = 48.866;
         userLng = 2.333;
         console.warn("Géolocalisation échouée, position par défaut utilisée.", e.message);
       }
     }
 
+    // Appelle l'API pour récupérer les stations
     const resultats = await fetchStations({
       lat: userLat, lng: userLng,
       carburant, rayon, conso, resTotal, resCourant,
       avecLavage, avecGonflage,
     });
 
-    // Les champs venant de l'API sont en camelCase
+    // Structure des données retournées par l'API (camelcase)
     // idStation, latitude, longitude, adresse, ville, cp,
     // automate, lavage, gonflage, nomAffiche,
     // prixCarburant, dateMaj, nomCarburant, coutTotal, distance, rang
 
+    // Met à jour le compteur des stations utilisé dans la bannière
     window.currentStationCount = resultats.length;
+    // Met à jour la baniière
     if (typeof window.updateBanner === 'function') window.updateBanner();
 
+    // Affiche les résultats (message si vide)
     viewListe.innerHTML = resultats.length === 0
       ? '<p class="placeholder">Aucune station trouvée.</p>'
       : resultats.map(s => `
@@ -121,35 +156,49 @@ async function renderStations() {
         </div>
       `).join('');
 
+    // Si la carte existe, affiche les stations dessus
     if (document.getElementById('map')) {
       renderStationsOnMap(resultats);
     }
 
   } catch (err) {
+    // Si erreur : affiche un message
     console.error("Erreur lors du chargement des stations :", err);
     viewListe.innerHTML = `<p class="placeholder">Erreur de connexion au serveur.<br><small>${err.message}</small></p>`;
+    // Réinitialise le compteur de stations
     window.currentStationCount = 0;
+    // Met à jour la bannière
     if (typeof window.updateBanner === 'function') window.updateBanner();
   }
 }
 
+// --------------------------------------------------
 // Carte Leaflet
+// --------------------------------------------------
+
+// Affiche les stations sur une carte interactive Leaflet
 function renderStationsOnMap(stations) {
+  // Utilise la position de l'utilisateur ou Paris par défaut
   const centerLat = userLat || 48.866;
   const centerLng = userLng || 2.333;
 
+  // Initialise la carte Leaflet si elle n'existe pas encore
   if (!window._leafletMap) {
+    // Crée la carte centrée sur la position de l'utilisateur
     window._leafletMap = L.map('map').setView([centerLat, centerLng], 12);
+    // Ajoute la couche OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(window._leafletMap);
+    // Recalcule la taille de la carte après un court délai
     setTimeout(() => window._leafletMap.invalidateSize(), 100);
   }
   const map = window._leafletMap;
 
-  // Marqueur utilisateur
+  // Ajoute ou met à jour le marqueur de position de l'utilisateur
   if (window._leafletUserMarker) map.removeLayer(window._leafletUserMarker);
   window._leafletUserMarker = L.marker([centerLat, centerLng], {
+    // Icône par défaut de Leaflet (marqueur bleu)
     icon: L.icon({
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
@@ -158,14 +207,18 @@ function renderStationsOnMap(stations) {
     })
   }).addTo(map);
 
+  // Initialise le groupe de marqueurs avec clusters si nécessaires
   if (!window._markerClusterGroup) {
     window._markerClusterGroup = L.markerClusterGroup();
     map.addLayer(window._markerClusterGroup);
   } else {
+    // Supprime tous les marqueurs de stations précédents
     window._markerClusterGroup.clearLayers();
   }
 
+  // Ajoute un marqueur pour chaque station
   stations.forEach(station => {
+    // Crée une icône personnalisée combinant l'adresse et le prix
     const combinedIcon = L.divIcon({
       className: 'station-combined-marker',
       html: `
@@ -186,12 +239,14 @@ function renderStationsOnMap(stations) {
 
     // Les coordonnées viennent déjà en degrés décimaux depuis le backend
     const marker = L.marker([station.latitude, station.longitude], { icon: combinedIcon });
+    // Ajoute le marqueur au cluster
     window._markerClusterGroup.addLayer(marker);
   });
 
+  // Recalcule la taille de la carte
   setTimeout(() => map.invalidateSize(), 100);
 
-  // Légende (créée une seule fois)
+  // Crée la légende de la carte (créée une seule fois)
   if (!document.getElementById('map-legend')) {
     const legend = document.createElement('div');
     legend.id = 'map-legend';
@@ -211,41 +266,64 @@ function renderStationsOnMap(stations) {
         <span>Stations essence</span>
       </div>
     `;
+    // Ajoute la légende à la carte
     document.getElementById('map').appendChild(legend);
   }
 }
 
-// Recalcule la carte quand elle devient visible
+// --------------------------------------------------
+// Observer pour recalculer la carte
+// --------------------------------------------------
+
+// Observe les changements de visibilité de la carte pour la redimensionner automatiquement
 function observeMapVisibility() {
   const mapDiv = document.getElementById('map');
   if (!mapDiv) return;
+  // Crée un observateur de mutations DOM
   const observer = new MutationObserver(() => {
+    // Si la carte devient visible (classe "hidden" retirée)
     if (!mapDiv.classList.contains('hidden') && window._leafletMap) {
+      // Recalcule la taille de la carte
       setTimeout(() => window._leafletMap.invalidateSize(), 100);
     }
   });
+  // Observe les changements de classe sur le parent de la carte
   observer.observe(mapDiv.parentElement, { attributes: true, attributeFilter: ['class'] });
 }
 
+// --------------------------------------------------
 // Utilitaires
+// --------------------------------------------------
+
+// Échappe les caractères HTML pour éviter les injections XSS
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Convertit une date de mise à jour en texte lisible
 function getUpdateText(dateStr) {
+  // Parse la date de mise à jour
   const dateMaj = new Date(dateStr);
   const now = new Date();
+  // Calcule la différence en heures
   const diffH = Math.floor((now - dateMaj) / (1000 * 60 * 60));
+  // Calcule la différence en jours
   const diffD = Math.floor(diffH / 24);
+  // Return le message correspondant
   if (diffD >= 1) return diffD === 1 ? "Mis à jour il y a environ 1 jour" : `Mis à jour il y a environ ${diffD} jours`;
   if (diffH < 1) return "Mis à jour il y a moins d'1 heure";
   if (diffH === 1) return "Mis à jour il y a environ 1 heure";
   return `Mis à jour il y a environ ${diffH} heures`;
 }
 
-// Initialisation
+// --------------------------------------------------
+// Initialisation au chargement de la page
+// --------------------------------------------------
+
+// S'exécute quand le DOM est complètement chargé
 document.addEventListener('DOMContentLoaded', () => {
+  // Restaure l'onglet actif depuis le localStorage (liste / carte)
   const lastTab = localStorage.getItem('activeTab');
   if (lastTab === 'carte') {
     document.getElementById('tab-carte').classList.add('active');
@@ -254,25 +332,41 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('view-liste').classList.add('hidden');
   }
 
+  // Lance le premier rendu des stations
   renderStations();
 
   // Relance le rendu à chaque changement de filtre
   document.querySelectorAll('#card-filters input, #card-filters select')
     .forEach(el => el.addEventListener('change', renderStations));
 
+    // Acive l'observation de la visibilité de la carte
   observeMapVisibility();
 });
 
+
+// --------------------------------------------------
 // Sauvegarde de l'onglet actif
+// --------------------------------------------------
+
+// Sélectionne les boutons d'onglets
 const tabListe = document.getElementById('tab-liste');
 const tabCarte = document.getElementById('tab-carte');
 if (tabListe && tabCarte) {
+  // Sauvegarde de l'onglet "liste" quand il est cliqué
   tabListe.addEventListener('click', () => localStorage.setItem('activeTab', 'liste'));
+  // Sauvegarde de l'onglet "carte" quand il est cliqué
   tabCarte.addEventListener('click', () => localStorage.setItem('activeTab', 'carte'));
 }
 
+// --------------------------------------------------
+// Écouteurs d'événements pour les filtres
+// --------------------------------------------------
+
+// S'exécute quand le DOM est complètement chargé
 document.addEventListener('DOMContentLoaded', () => {
+  // Lance le rendu initial
   renderStations();
+  // Ajoute les écouteurs d'événements sur chaque filtre
   document.getElementById('filtre-carburant')?.addEventListener('change', renderStations);
   document.getElementById('filtre-conso')?.addEventListener('input', renderStations);
   document.getElementById('filtre-rayon')?.addEventListener('input', renderStations);
